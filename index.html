@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สอบถามตารางงาน</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #e3f2fd; }
+    h2 { color: #0d47a1; }
+    label { display: block; margin-top: 15px; }
+    input, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #2196f3; color: white; border: none; margin-top: 20px; }
+    button:hover { background-color: #1976d2; }
+  </style>
+</head>
+<body>
+  <h2>สอบถามตารางงาน</h2>
+  <form id="schedule-form">
+    <label>วันที่เริ่ม:
+      <input type="date" id="startDate" required />
+    </label>
+    <label>วันที่สิ้นสุด:
+      <input type="date" id="endDate" required />
+    </label>
+    <button type="submit">ส่งคำสั่ง</button>
+  </form>
+
+  <script>
+    function pad(n) {
+      return n < 10 ? '0' + n : n;
+    }
+
+    function formatThaiDate(dateStr) {
+      const [year, month, day] = dateStr.split('-');
+      return `${parseInt(day)}/${parseInt(month)}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      liff.init({ liffId: "YOUR_LIFF_ID" })
+        .then(() => { if (!liff.isLoggedIn()) liff.login(); })
+        .catch(err => alert("LIFF init error: " + err));
+
+      document.getElementById("schedule-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        if (!startDate || !endDate) {
+          alert("กรุณาเลือกวันที่เริ่มและวันที่สิ้นสุดให้ครบถ้วน");
+          return;
+        }
+
+        const startFormatted = formatThaiDate(startDate);
+        const endFormatted = formatThaiDate(endDate);
+        const rangeText = startFormatted === endFormatted ? startFormatted : `${startFormatted}-${endFormatted}`;
+
+        const fullText = `สอบถามตารางงาน\n${rangeText}`;
+
+        try {
+          await liff.sendMessages([
+            {
+              type: "text",
+              text: fullText
+            }
+          ]);
+
+          liff.closeWindow();
+        } catch (err) {
+          alert("เกิดข้อผิดพลาด: " + err.message);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
